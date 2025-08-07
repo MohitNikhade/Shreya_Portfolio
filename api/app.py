@@ -67,7 +67,6 @@ try:
     app = Flask(__name__, static_folder="../public/static", template_folder="../public")
     app.secret_key = os.getenv('SECRET_KEY', 'fallback-secret-key')
 
-    # Mail configuration
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     app.config['MAIL_PORT'] = 587
     app.config['MAIL_USE_TLS'] = True
@@ -79,7 +78,7 @@ try:
 
     @app.route('/')
     def index():
-        return render_template('index.html')
+        return render_template('index3.html')
 
     @app.route('/send_message', methods=['POST'])
     def send_message():
