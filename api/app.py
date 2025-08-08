@@ -137,40 +137,69 @@ mail = Mail(app)
 def index():
     return render_template('index3.html')
 
+# @app.route('/send_message', methods=['POST'])
+# def send_message():
+#     try:
+#         data = request.form
+#         name = data.get('name')
+#         email = data.get('email')
+#         subject = data.get('subject')
+#         message = data.get('message')
+
+#         if not all([name, email, subject, message]):
+#             return jsonify({"error": "Missing fields"}), 400
+
+#         msg = Message(
+#             subject=f"Portfolio Message: {subject}",
+#             recipients=['shreyapawark7@gmail.com'],
+#             reply_to=email,
+#             sender=app.config['MAIL_DEFAULT_SENDER']
+#         )
+#         msg.body = f"""
+#         Name: {name}
+#         Email: {email}
+#         Subject: {subject}
+
+#         Message:
+#         {message}
+#         """
+
+#         mail.send(msg)
+#         logger.info("Email sent successfully")
+#         return jsonify({"success": True}), 200
+
+#     except Exception as e:
+#         logger.error(f"Failed to send email: {str(e)}")
+#         return jsonify({"error": str(e)}), 500
+
 @app.route('/send_message', methods=['POST'])
 def send_message():
-    try:
-        data = request.form
-        name = data.get('name')
-        email = data.get('email')
-        subject = data.get('subject')
-        message = data.get('message')
-
-        if not all([name, email, subject, message]):
-            return jsonify({"error": "Missing fields"}), 400
-
-        msg = Message(
-            subject=f"Portfolio Message: {subject}",
-            recipients=['shreyapawark7@gmail.com'],
-            reply_to=email,
-            sender=app.config['MAIL_DEFAULT_SENDER']
-        )
-        msg.body = f"""
-        Name: {name}
-        Email: {email}
-        Subject: {subject}
-
-        Message:
-        {message}
-        """
-
-        mail.send(msg)
-        logger.info("Email sent successfully")
-        return jsonify({"success": True}), 200
-
-    except Exception as e:
-        logger.error(f"Failed to send email: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+    if request.method == 'POST':
+        try:
+            name = request.form['name']
+            email = request.form['email']
+            subject = request.form['subject']
+            message = request.form['message']
+            
+            msg = Message(
+                subject=f"New message from {name}: {subject}",
+                recipients=['shreyapawark7@gmail.com'],
+                reply_to=email
+            )
+            msg.body = f"""
+            Name: {name}
+            Email: {email}
+            Subject: {subject}
+            
+            Message:
+            {message}
+            """
+            
+            mail.send(msg)
+            return "Message sent successfully!", 200
+        except Exception as e:
+            print(f"Error sending email: {str(e)}")
+            return f"Error sending message: {str(e)}", 500
 
 def vercel_handler(request):
     with app.app_context():
