@@ -109,14 +109,19 @@
 
 
 import os
-from flask import Flask, render_template, request
+import logging
+from flask import Flask, render_template, request, jsonify
 from flask_mail import Mail, Message
 from dotenv import load_dotenv
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
 app = Flask(__name__, static_folder="../public/static", template_folder="../public")
-app.secret_key = os.getenv('SECRET_KEY', 'your-secret-key')
+# app.secret_key = os.getenv('SECRET_KEY', 'fallback-secret-key')
+app.secret_key = os.getenv('SECRET_KEY')
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
@@ -134,32 +139,37 @@ def index():
 @app.route('/send_message', methods=['POST'])
 def send_message():
     try:
-        name = request.form.get('name')
-        email = request.form.get('email')
-        subject = request.form.get('subject')
-        message = request.form.get('message')
-        
+        data = request.form
+        name = data.get('name')
+        email = data.get('email')
+        subject = data.get('subject')
+        message = data.get('message')
+
         if not all([name, email, subject, message]):
-            return "Missing form data", 400
-            
+            return jsonify({"error": "Missing fields"}), 400
+
         msg = Message(
-            subject=f"New message from {name}: {subject}",
+            subject=f"Portfolio Message: {subject}",
             recipients=['shreyapawark7@gmail.com'],
-            reply_to=email
+            reply_to=email,
+            sender=app.config['MAIL_DEFAULT_SENDER']
         )
         msg.body = f"""
         Name: {name}
         Email: {email}
         Subject: {subject}
-        
+
         Message:
         {message}
         """
-        
+
         mail.send(msg)
-        return "Message sent successfully!", 200
+        logger.info("Email sent successfully")
+        return jsonify({"success": True}), 200
+
     except Exception as e:
-        return f"Error sending message: {str(e)}", 500
+        logger.error(f"Failed to send email: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 def vercel_handler(request):
     with app.app_context():
